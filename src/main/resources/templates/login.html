@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - EventPlatform</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 2rem 0;
+        }
+        
+        .login-container {
+            max-width: 450px;
+            width: 100%;
+            padding: 20px;
+        }
+        
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .login-header {
+            background: linear-gradient(135deg, #4A90E2, #357ABD);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .login-header h2 {
+            margin: 0;
+            font-size: 2rem;
+        }
+        
+        .login-body {
+            padding: 2rem;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+        
+        .form-control {
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: #4A90E2;
+            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+            outline: none;
+        }
+        
+        .btn-login {
+            background: linear-gradient(135deg, #4A90E2, #357ABD);
+            border: none;
+            border-radius: 25px;
+            padding: 0.75rem;
+            font-weight: bold;
+            color: white;
+            width: 100%;
+            transition: all 0.3s;
+            font-size: 1.1rem;
+        }
+        
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4);
+            color: white;
+        }
+        
+        .btn-login:active {
+            transform: translateY(0);
+        }
+        
+        .alert {
+            border-radius: 10px;
+            padding: 1rem;
+        }
+        
+        .back-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .back-link:hover {
+            color: #fff;
+            text-decoration: underline;
+        }
+        
+        .register-link {
+            color: #4A90E2;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .register-link:hover {
+            color: #357ABD;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- Lien retour -->
+        <div class="text-center mb-3">
+            <a href="/" class="back-link">
+                <i class="fas fa-arrow-left"></i> Retour à l'accueil
+            </a>
+        </div>
+        
+        <div class="login-card">
+            <!-- En-tête -->
+            <div class="login-header">
+                <h2>
+                    <i class="fas fa-sign-in-alt"></i> Connexion
+                </h2>
+                <p class="mb-0 mt-2">Accédez à votre compte EventPlatform</p>
+            </div>
+            
+            <!-- Corps du formulaire -->
+            <div class="login-body">
+                <!-- Message d'erreur -->
+                <div th:if="${param.error}" class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-circle"></i> 
+                    <strong>Erreur !</strong> Nom d'utilisateur ou mot de passe incorrect.
+                </div>
+                
+                <!-- Message de déconnexion -->
+                <div th:if="${param.logout}" class="alert alert-success" role="alert">
+                    <i class="fas fa-check-circle"></i> 
+                    <strong>Déconnexion réussie !</strong> À bientôt.
+                </div>
+                
+                <!-- Message d'inscription réussie -->
+                <div th:if="${param.registered}" class="alert alert-success" role="alert">
+                    <i class="fas fa-check-circle"></i> 
+                    <strong>Inscription réussie !</strong> Vous pouvez maintenant vous connecter.
+                </div>
+                
+                <!-- ================================ -->
+                <!-- FORMULAIRE DE CONNEXION -->
+                <!-- ================================ -->
+                <form th:action="@{/login}" method="post" id="loginForm">
+                    <!-- Champ Nom d'utilisateur -->
+                    <div class="mb-3">
+                        <label for="username" class="form-label">
+                            <i class="fas fa-user"></i> Nom d'utilisateur
+                        </label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="username" 
+                               name="username" 
+                               required 
+                               autofocus
+                               placeholder="Entrez votre nom d'utilisateur">
+                    </div>
+                    
+                    <!-- Champ Mot de passe -->
+                    <div class="mb-4">
+                        <label for="password" class="form-label">
+                            <i class="fas fa-lock"></i> Mot de passe
+                        </label>
+                        <input type="password" 
+                               class="form-control" 
+                               id="password" 
+                               name="password" 
+                               required
+                               placeholder="Entrez votre mot de passe">
+                    </div>
+                    
+                    <!-- Case à cocher "Se souvenir de moi" (optionnel) -->
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" 
+                               class="form-check-input" 
+                               id="remember-me" 
+                               name="remember-me">
+                        <label class="form-check-label" for="remember-me">
+                            Se souvenir de moi
+                        </label>
+                    </div>
+                    
+                    <!-- Bouton de soumission -->
+                    <button type="submit" class="btn btn-login">
+                        <i class="fas fa-sign-in-alt"></i> Se connecter
+                    </button>
+                </form>
+                <!-- ================================ -->
+                <!-- FIN DU FORMULAIRE -->
+                <!-- ================================ -->
+                
+                <hr class="my-4">
+                
+                <!-- Lien vers l'inscription -->
+                <div class="text-center">
+                    <p class="mb-0">
+                        Vous n'avez pas encore de compte ?
+                        <a href="/register" class="register-link">
+                            <i class="fas fa-user-plus"></i> Inscrivez-vous gratuitement
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Informations de test (à supprimer en production) -->
+        <div class="text-center mt-3">
+            <small class="text-white">
+                <strong>Comptes de test :</strong><br>
+                Admin : admin / admin123<br>
+                Utilisateur : user1 / user123
+            </small>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Script de validation (optionnel) -->
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            
+            // Validation basique
+            if (username.length < 3) {
+                e.preventDefault();
+                alert('Le nom d\'utilisateur doit contenir au moins 3 caractères');
+                return false;
+            }
+            
+            if (password.length < 6) {
+                e.preventDefault();
+                alert('Le mot de passe doit contenir au moins 6 caractères');
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>

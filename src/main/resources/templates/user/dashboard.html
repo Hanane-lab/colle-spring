@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Espace - EventPlatform</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .dashboard-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .ticket-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            overflow: hidden;
+        }
+        
+        .ticket-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .ticket-header {
+            background: linear-gradient(135deg, #50C878, #3BA95A);
+            color: white;
+            padding: 1.5rem;
+        }
+        
+        .event-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            overflow: hidden;
+        }
+        
+        .event-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .event-header {
+            background: linear-gradient(135deg, #4A90E2, #357ABD);
+            color: white;
+            padding: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="/">
+                <i class="fas fa-calendar-alt"></i> EventPlatform
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="fas fa-home"></i> Accueil
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/user/dashboard">
+                            <i class="fas fa-tachometer-alt"></i> Mon Espace
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle"></i> 
+                            <span sec:authentication="name">Utilisateur</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" href="/profile">
+                                    <i class="fas fa-user-edit"></i> Mon Profil
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form th:action="@{/logout}" method="post" class="d-inline">
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        <i class="fas fa-sign-out-alt"></i> Déconnexion
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Welcome -->
+        <div class="dashboard-card">
+            <h2 class="mb-3">
+                <i class="fas fa-user-circle text-primary"></i> 
+                Bienvenue <span th:text="${user.username}">Utilisateur</span>
+            </h2>
+            <p class="text-muted">Gérez vos réservations et découvrez de nouveaux événements</p>
+        </div>
+
+        <!-- Alerts -->
+        <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show">
+            <i class="fas fa-check-circle"></i> Réservation effectuée avec succès !
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        
+        <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show">
+            <i class="fas fa-exclamation-circle"></i> 
+            <span th:text="${param.error}">Erreur lors de la réservation</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Mes Tickets -->
+        <h3 class="text-white mb-3">
+            <i class="fas fa-ticket-alt"></i> Mes Réservations
+        </h3>
+        
+        <div class="row mb-5">
+            <div th:if="${#lists.isEmpty(tickets)}" class="col-12">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Vous n'avez aucune réservation pour le moment
+                </div>
+            </div>
+            
+            <div th:each="ticket : ${tickets}" class="col-md-6 col-lg-4 mb-3">
+                <div class="ticket-card">
+                    <div class="ticket-header">
+                        <h5 class="mb-0" th:text="${ticket.event.title}">Événement</h5>
+                    </div>
+                    <div class="p-3">
+                        <p class="mb-2">
+                            <i class="fas fa-calendar text-primary"></i>
+                            <span th:text="${#temporals.format(ticket.event.eventDate, 'dd/MM/yyyy HH:mm')}">Date</span>
+                        </p>
+                        <p class="mb-2">
+                            <i class="fas fa-map-marker-alt text-danger"></i>
+                            <span th:text="${ticket.event.location}">Lieu</span>
+                        </p>
+                        <p class="mb-2">
+                            <i class="fas fa-qrcode text-success"></i>
+                            <small th:text="${ticket.qrCode}">QR Code</small>
+                        </p>
+                        <div class="mt-3">
+                            <span th:if="${ticket.valid}" class="badge bg-success w-100">
+                                <i class="fas fa-check-circle"></i> Ticket Valide
+                            </span>
+                            <span th:unless="${ticket.valid}" class="badge bg-danger w-100">
+                                <i class="fas fa-times-circle"></i> Ticket Invalide
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Événements Disponibles -->
+        <h3 class="text-white mb-3">
+            <i class="fas fa-calendar-check"></i> Événements Disponibles
+        </h3>
+        
+        <div class="row">
+            <div th:if="${#lists.isEmpty(events)}" class="col-12">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Aucun événement disponible pour le moment
+                </div>
+            </div>
+            
+            <div th:each="event : ${events}" class="col-md-6 col-lg-4 mb-3">
+                <div class="event-card">
+                    <div class="event-header">
+                        <h5 class="mb-0" th:text="${event.title}">Événement</h5>
+                    </div>
+                    <div class="p-3">
+                        <p class="mb-2">
+                            <i class="fas fa-calendar"></i>
+                            <span th:text="${#temporals.format(event.eventDate, 'dd/MM/yyyy HH:mm')}">Date</span>
+                        </p>
+                        <p class="mb-2">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span th:text="${event.location}">Lieu</span>
+                        </p>
+                        <p class="mb-3" th:text="${event.description}">Description</p>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="badge bg-success" th:text="${event.ticketPrice + ' DH'}">Prix</span>
+                            <span class="badge bg-info" th:text="${event.totalTickets + ' places'}">Places</span>
+                        </div>
+                        <form th:action="@{/user/tickets/book}" method="post">
+                            <input type="hidden" name="eventId" th:value="${event.id}">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-ticket-alt"></i> Réserver
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-white text-center py-4 mt-5" style="background: rgba(0,0,0,0.2);">
+        <div class="container">
+            <p class="mb-0">
+                <i class="fas fa-heart text-danger"></i> 
+                EventPlatform © 2024
+            </p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
