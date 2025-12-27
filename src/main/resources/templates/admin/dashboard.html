@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration - EventPlatform</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .dashboard-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-box {
+            background: linear-gradient(135deg, #4A90E2, #357ABD);
+            color: white;
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+        
+        .stat-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        
+        .stat-box.success {
+            background: linear-gradient(135deg, #50C878, #3BA95A);
+        }
+        
+        .stat-box.danger {
+            background: linear-gradient(135deg, #FF6B6B, #E74C3C);
+        }
+        
+        .stat-box.warning {
+            background: linear-gradient(135deg, #FFA500, #FF8C00);
+        }
+        
+        .event-table {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .table thead {
+            background: linear-gradient(135deg, #4A90E2, #357ABD);
+            color: white;
+        }
+        
+        .btn-add-event {
+            background: linear-gradient(135deg, #50C878, #3BA95A);
+            border: none;
+            border-radius: 25px;
+            padding: 0.75rem 2rem;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .btn-add-event:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(80, 200, 120, 0.4);
+        }
+        
+        .btn-action {
+            border-radius: 20px;
+            padding: 0.4rem 1rem;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="/">
+                <i class="fas fa-calendar-alt"></i> EventPlatform
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="fas fa-home"></i> Accueil
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/admin/dashboard">
+                            <i class="fas fa-chart-line"></i> Administration
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-shield"></i> 
+                            <span sec:authentication="name">Admin</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" href="/profile">
+                                    <i class="fas fa-user-edit"></i> Mon Profil
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form th:action="@{/logout}" method="post" class="d-inline">
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        <i class="fas fa-sign-out-alt"></i> Déconnexion
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Welcome -->
+        <div class="dashboard-card">
+            <h2 class="mb-3">
+                <i class="fas fa-chart-line text-primary"></i> 
+                Tableau de Bord Administrateur
+            </h2>
+            <p class="text-muted">Gérez vos événements et consultez les statistiques</p>
+        </div>
+
+        <!-- Alerts -->
+        <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show">
+            <i class="fas fa-check-circle"></i> Opération effectuée avec succès !
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        
+        <div th:if="${param.deleted}" class="alert alert-success alert-dismissible fade show">
+            <i class="fas fa-trash-alt"></i> Événement supprimé avec succès !
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="stat-box">
+                    <h1 class="display-4">
+                        <i class="fas fa-calendar-alt"></i>
+                    </h1>
+                    <h3 th:text="${stats.totalEvents}">0</h3>
+                    <p class="mb-0">Total Événements</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-box success">
+                    <h1 class="display-4">
+                        <i class="fas fa-ticket-alt"></i>
+                    </h1>
+                    <h3 th:text="${stats.totalTickets}">0</h3>
+                    <p class="mb-0">Tickets Vendus</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-box warning">
+                    <h1 class="display-4">
+                        <i class="fas fa-users"></i>
+                    </h1>
+                    <h3 th:text="${stats.totalUsers}">0</h3>
+                    <p class="mb-0">Utilisateurs</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-box danger">
+                    <h1 class="display-4">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </h1>
+                    <h3>
+                        <span th:text="${stats.totalTickets * 50}">0</span> DH
+                    </h3>
+                    <p class="mb-0">Revenus Totaux</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Event Button -->
+        <div class="text-end mb-3">
+            <button type="button" class="btn btn-add-event" data-bs-toggle="modal" data-bs-target="#addEventModal">
+                <i class="fas fa-plus-circle"></i> Ajouter un Événement
+            </button>
+        </div>
+
+        <!-- Events Table -->
+        <div class="event-table">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-hashtag"></i> ID</th>
+                            <th><i class="fas fa-heading"></i> Titre</th>
+                            <th><i class="fas fa-calendar"></i> Date</th>
+                            <th><i class="fas fa-map-marker-alt"></i> Lieu</th>
+                            <th><i class="fas fa-ticket-alt"></i> Places</th>
+                            <th><i class="fas fa-tag"></i> Prix</th>
+                            <th><i class="fas fa-cog"></i> Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(events)}">
+                            <td colspan="7" class="text-center text-muted py-4">
+                                <i class="fas fa-inbox"></i> Aucun événement pour le moment
+                            </td>
+                        </tr>
+                        <tr th:each="event : ${events}">
+                            <td th:text="${event.id}">1</td>
+                            <td>
+                                <strong th:text="${event.title}">Événement</strong>
+                            </td>
+                            <td>
+                                <small th:text="${#temporals.format(event.eventDate, 'dd/MM/yyyy HH:mm')}">Date</small>
+                            </td>
+                            <td th:text="${event.location}">Lieu</td>
+                            <td>
+                                <span class="badge bg-info" th:text="${event.totalTickets}">100</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-success" th:text="${event.ticketPrice + ' DH'}">50 DH</span>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-primary btn-action me-1"
+                                        data-bs-toggle="modal" 
+                                        th:attr="data-bs-target='#editEventModal' + ${event.id}">
+                                    <i class="fas fa-edit"></i> Modifier
+                                </button>
+                                
+                                <form th:action="@{/admin/events/delete/{id}(id=${event.id})}" 
+                                      method="post" class="d-inline"
+                                      onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet événement ?');">
+                                    <button type="submit" class="btn btn-sm btn-danger btn-action">
+                                        <i class="fas fa-trash"></i> Supprimer
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Event Modal -->
+    <div class="modal fade" id="addEventModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #50C878, #3BA95A); color: white;">
+                    <h5 class="modal-title">
+                        <i class="fas fa-plus-circle"></i> Ajouter un Événement
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/admin/events/add}" method="post">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-heading"></i> Titre *
+                                </label>
+                                <input type="text" class="form-control" name="title" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-calendar"></i> Date et Heure *
+                                </label>
+                                <input type="datetime-local" class="form-control" name="eventDate" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-align-left"></i> Description
+                            </label>
+                            <textarea class="form-control" name="description" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-map-marker-alt"></i> Lieu *
+                                </label>
+                                <input type="text" class="form-control" name="location" required>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-ticket-alt"></i> Places *
+                                </label>
+                                <input type="number" class="form-control" name="totalTickets" min="1" required>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-tag"></i> Prix (DH) *
+                                </label>
+                                <input type="number" class="form-control" name="ticketPrice" 
+                                       step="0.01" min="0" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times"></i> Annuler
+                        </button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Enregistrer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-white text-center py-4 mt-5" style="background: rgba(0,0,0,0.2);">
+        <div class="container">
+            <p class="mb-0">
+                <i class="fas fa-heart text-danger"></i> 
+                EventPlatform © 2024 - Administration
+            </p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

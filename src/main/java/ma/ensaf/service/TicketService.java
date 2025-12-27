@@ -3,14 +3,8 @@ package ma.ensaf.service;
 import ma.ensaf.model.Event;
 import ma.ensaf.model.Ticket;
 import ma.ensaf.model.User;
-import ma.ensaf.repository.EventRepository;
 import ma.ensaf.repository.TicketRepository;
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.MultiFormatWriter;
-import com.google.zxing.client.j2se.MatrixToImageWriter;
-import com.google.zxing.common.BitMatrix;
 import org.springframework.stereotype.Service;
-
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -23,7 +17,7 @@ public class TicketService {
 
     public Ticket createTicket(Event event, User participant) {
         if (ticketRepository.existsByEventAndParticipant(event, participant)) {
-            throw new RuntimeException("Ticket already exists for this event and participant");
+            throw new RuntimeException("Vous avez déjà réservé un ticket pour cet événement");
         }
 
         Ticket ticket = new Ticket(event, participant);
@@ -46,6 +40,10 @@ public class TicketService {
 
     public List<Ticket> getTicketsByParticipant(User participant) {
         return ticketRepository.findByParticipant(participant);
+    }
+
+    public List<Ticket> getAllTickets() {
+        return ticketRepository.findAll();
     }
 
     public void invalidateTicket(Long id) {

@@ -1,6 +1,7 @@
 package ma.ensaf.service;
 
 import ma.ensaf.model.Role;
+import ma.ensaf.model.Ticket;
 import ma.ensaf.model.User;
 import ma.ensaf.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -48,7 +49,9 @@ public class UserService implements UserDetailsService {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
     }
-
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = findByUsername(username);
